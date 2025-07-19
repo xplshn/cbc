@@ -70,18 +70,6 @@ static Token make_token(Lexer* lexer, TokenType type, char* value) {
     };
 }
 
-static bool match(Lexer* lexer, TokenType expected) {
-    Lexer temp = *lexer; // Save state
-    Token next = lexer_next(lexer);
-    if (next.type == expected) {
-        token_free(next);
-        return true;
-    }
-    *lexer = temp; // Restore state
-    token_free(next);
-    return false;
-}
-
 static size_t decodechar(Lexer* lexer, uint32_t* chr, int line) {
     const char* s = lexer->source + lexer->pos;
     const unsigned char* p = (const unsigned char*)s;
@@ -232,9 +220,10 @@ static Token character(Lexer* lexer) {
     uint32_t c;
     decodechar(lexer, &c, line);
     if (c > 255) error(line, "Character out of range");
-    if (!match(lexer, TOK_QUOTE)) {
+    if (peek(lexer) != '\'') {
         error(line, "Expected closing single quote for character literal");
     }
+    advance(lexer); // Consume closing "'"
     char* str = malloc(16);
     snprintf(str, 16, "%d", (unsigned char)c);
     return make_token(lexer, TOK_CHAR, str);
@@ -258,8 +247,11 @@ Token lexer_next(Lexer* lexer) {
     char c = peek(lexer);
     if (c == '\0') {
         Token tok = make_token(lexer, TOK_EOF, NULL);
-        printf("Token: type=%d (EOF), value=%s, line=%d, col=%d\n",
-               tok.type, tok.value ? tok.value : "null", tok.line, tok.column);
+        printf("Token: type=%d, value=%s, line=%d, col=%d\n",
+       tok.type, tok.value ? tok.value : "null", tok.line, tok.column);
+        if (tok.type == TOK_CHAR) {
+            printf("debug: Character value (ASCII %d)\n", tok.value ? atoi(tok.value) : 0);
+        }
         return tok;
     }
 
@@ -313,3 +305,4 @@ void token_free(Token token) {
         token.value = NULL; // Prevent double-free
     }
 }
+

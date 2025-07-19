@@ -82,7 +82,6 @@ static void free_string_table(StringTable* table) {
 }
 
 static char* add_string(CodegenContext* ctx, const char* value, int line) {
-    // validate
     if (!value || value[0] == '\0') {
         fprintf(stderr, "\033[33mWarning\033[0m at line %d: Empty or null string literal\n", line);
         return str_dup("empty_str");
@@ -107,8 +106,13 @@ static char* add_string(CodegenContext* ctx, const char* value, int line) {
 }
 
 static void emit_data_section(CodegenContext* ctx) {
+    if (!ctx) error(0, "Null codegen context in emit_data_section");
     fprintf(ctx->out, "# Data section\n");
     for (int i = 0; i < ctx->strings.count; i++) {
+        if (!ctx->strings.entries[i].value || !ctx->strings.entries[i].label) {
+            fprintf(stderr, "\033[33mWarning\033[0m: Null string or label at index %d\n", i);
+            continue;
+        }
         fprintf(ctx->out, "data $%s = { b ", ctx->strings.entries[i].label);
         const char* p = ctx->strings.entries[i].value;
         if (*p == '\0') {
@@ -202,10 +206,12 @@ static Symbol* scope_find_or_add(Scope* scope, char* name, int is_param, int lin
 }
 
 static void scope_add_symbol(Scope* scope, char* name, int is_param, int line) {
+    if (!scope || !name) error(line, "Null scope or name in scope_add_symbol");
     scope_find_or_add(scope, name, is_param, line, 1);
 }
 
 static int scope_find_symbol(Scope* scope, char* name, int* is_param, int* is_initialized, int* is_used) {
+    if (!scope || !name) return 0;
     while (scope) {
         Symbol* sym = scope_find_or_add(scope, name, 0, 0, 0);
         if (sym) {
