@@ -1,7 +1,7 @@
+#include "util.h"
 #include "lexer.h"
 #include "parser.h"
 #include "codegen.h"
-#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,41 +11,55 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Read input file
+    printf("debug: Opening file '%s'\n", argv[1]);
     FILE* file = fopen(argv[1], "r");
     if (!file) {
-        fprintf(stderr, "Cannot open file %s\n", argv[1]);
+        fprintf(stderr, "Error: Cannot open file '%s'\n", argv[1]);
         return 1;
     }
+
+    printf("debug: Getting file size\n");
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char* source = malloc(size + 1);
-    if (!source) {
-        fprintf(stderr, "Could not allocate memory for source file\n");
+    long file_size = ftell(file);
+    if (file_size < 0) {
+        fprintf(stderr, "Error: Cannot determine file size for '%s'\n", argv[1]);
+        fclose(file);
         return 1;
     }
-    size_t read_size = fread(source, 1, size, file);
-    if (read_size != (size_t)size) {
-        fprintf(stderr, "Error reading file\n");
+    fseek(file, 0, SEEK_SET);
+
+    printf("debug: Allocating buffer for %ld bytes\n", file_size);
+    char* source = malloc(file_size + 4);
+    if (!source) {
+        fprintf(stderr, "Error: Memory allocation failed for '%s'\n", argv[1]);
+        fclose(file);
+        return 1;
+    }
+
+    printf("debug: Reading file\n");
+    size_t read = fread(source, 1, file_size, file);
+    if (read != (size_t)file_size) {
+        fprintf(stderr, "Error: Failed to read entire file '%s' (read %zu of %ld bytes)\n",
+                argv[1], read, file_size);
         free(source);
         fclose(file);
         return 1;
     }
-    source[size] = '\0';
+    source[read] = '\0';
+    source[read + 1] = '\0';
+    source[read + 2] = '\0';
+    source[read + 3] = '\0'; // Padding for utf8_decode
     fclose(file);
 
-    // Lex and parse
-    DEBUG("--- LEXING & PARSING ---");
+    printf("debug: --- LEXING & PARSING ---\n");
     Lexer lexer = lexer_init(source);
     Parser parser = parser_init(&lexer);
     AstNode* ast = parser_parse(&parser);
-    DEBUG("--- PARSING COMPLETE ---");
+    printf("debug: --- PARSING COMPLETE ---\n");
 
-    // Generate QBE IR
-    DEBUG("--- CODE GENERATION ---");
+    printf("debug: --- CODE GENERATION ---\n");
     codegen_generate(ast, "output.qbe");
-    DEBUG("--- CODEGEN COMPLETE ---");
+    printf("debug: --- CODEGEN COMPLETE ---\n");
 
     // Clean up
     parser_free(&parser);
@@ -53,16 +67,15 @@ int main(int argc, char* argv[]) {
     free(source);
 
     // Run QBE and linker
-    DEBUG("--- ASSEMBLING & LINKING ---");
+    printf("debug: --- ASSEMBLING & LINKING ---\n");
     if (system("qbe -o output.s output.qbe") != 0) {
         error(0, "QBE failed to assemble the intermediate representation.");
     }
     if (system("cc -o output output.s") != 0) {
         error(0, "C compiler failed to link the final executable.");
     }
-    DEBUG("--- BUILD COMPLETE: ./output ---");
+    printf("debug: --- BUILD COMPLETE: ./output ---\n");
 
     return 0;
 }
-
 

@@ -55,10 +55,12 @@ static AstNode* parse_primary(Parser* parser) {
     if (match(parser, TOK_STRING)) {
         return ast_string(str_dup(parser->previous.value), parser->previous.line);
     }
+    if (match(parser, TOK_CHAR)) {
+        return ast_number(atoi(parser->previous.value), parser->previous.line);
+    }
     if (match(parser, TOK_IDENT)) {
         char* name = str_dup(parser->previous.value);
         int line = parser->previous.line;
-
         if (match(parser, TOK_LPAREN)) {
             AstNode** args = NULL;
             int arg_count = 0;
@@ -72,11 +74,12 @@ static AstNode* parse_primary(Parser* parser) {
             return ast_func_call(name, args, arg_count, line);
         }
         AstNode* expr = ast_ident(name, line);
-        if (match(parser, TOK_INC)) {
+        if (match(parser, TOK_INC) || match(parser, TOK_DEC)) {
             if (!is_valid_lvalue(expr)) {
-                error(parser->previous.line, "Increment operator applied to non-l-value");
+                error(parser->previous.line, "%s operator applied to non-l-value",
+                      parser->previous.type == TOK_INC ? "Increment" : "Decrement");
             }
-            expr = ast_unary_op(TOK_INC, expr, parser->previous.line);
+            return ast_unary_op(parser->previous.type, expr, parser->previous.line);
         }
         return expr;
     }
@@ -85,27 +88,26 @@ static AstNode* parse_primary(Parser* parser) {
         expect(parser, TOK_RPAREN, "Expected ')' after expression");
         return expr;
     }
-    if (match(parser, TOK_NOT)) {
-        return ast_unary_op(TOK_NOT, parse_primary(parser), parser->previous.line);
+    if (match(parser, TOK_NOT) || match(parser, TOK_COMPLEMENT)) {
+        return ast_unary_op(parser->previous.type, parse_primary(parser), parser->previous.line);
     }
-
     error(parser->current.line, "Expected an expression.");
     return NULL;
 }
 
 static AstNode* parse_postfix(Parser* parser) {
     AstNode* expr = parse_primary(parser);
-
     while (true) {
         if (match(parser, TOK_LBRACKET)) {
             AstNode* index = parse_expr(parser);
             expect(parser, TOK_RBRACKET, "Expected ']' after array index");
             expr = ast_array_index(expr, index, parser->previous.line);
-        } else if (match(parser, TOK_INC)) {
+        } else if (match(parser, TOK_INC) || match(parser, TOK_DEC)) {
             if (!is_valid_lvalue(expr)) {
-                error(parser->previous.line, "Increment operator applied to non-l-value");
+                error(parser->previous.line, "%s operator applied to non-l-value",
+                      parser->previous.type == TOK_INC ? "Increment" : "Decrement");
             }
-            expr = ast_unary_op(TOK_INC, expr, parser->previous.line);
+            expr = ast_unary_op(parser->previous.type, expr, parser->previous.line);
         } else {
             break;
         }

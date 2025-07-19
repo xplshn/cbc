@@ -106,18 +106,22 @@ static char* add_string(CodegenContext* ctx, const char* value, int line) {
     return label;
 }
 
-// TODO: Moronic handling of escape sequences should be removed.
-//       - Stop being lazy and look at cproc's codegen, maybe I can learn something
 static void emit_data_section(CodegenContext* ctx) {
     fprintf(ctx->out, "# Data section\n");
     for (int i = 0; i < ctx->strings.count; i++) {
-        fprintf(ctx->out, "data $%s = { b \"", ctx->strings.entries[i].label);
-        // handle escape sequences
-        for (char* p = ctx->strings.entries[i].value; *p; p++) {
-            if (*p == '\n') fprintf(ctx->out, "\\n");
-            else if (*p == '"') fprintf(ctx->out, "\\\"");
-            else if (*p == '\\') fprintf(ctx->out, "\\\\");
-            else fputc(*p, ctx->out);
+        fprintf(ctx->out, "data $%s = { b ", ctx->strings.entries[i].label);
+        const char* p = ctx->strings.entries[i].value;
+        if (*p == '\0') {
+            fprintf(ctx->out, "0 }\n");
+            continue;
+        }
+        fprintf(ctx->out, "\"");
+        for (; *p; p++) {
+            if (*p >= 32 && *p <= 126 && *p != '"' && *p != '\\') {
+                fputc(*p, ctx->out);
+            } else {
+                fprintf(ctx->out, "\\%03o", (unsigned char)*p);
+            }
         }
         fprintf(ctx->out, "\", b 0 }\n");
     }
@@ -173,30 +177,43 @@ static void exit_scope(CodegenContext* ctx) {
     DEBUG("Exited scope");
 }
 
-static void scope_add_symbol(Scope* scope, char* name, int is_param, int line) {
+static Symbol* scope_find_or_add(Scope* scope, char* name, int is_param, int line, int add) {
     Symbol* sym = scope->symbols;
+    Symbol* prev = NULL;
     while (sym) {
         if (strcmp(sym->name, name) == 0) {
-            error(line, "Redefinition of variable '%s' in same scope", name);
+            if (add) {
+                error(line, "Redefinition of variable '%s' in same scope", name);
+            }
+            return sym;
         }
+        prev = sym;
         sym = sym->next;
     }
+    if (!add) return NULL;
     Symbol* new_sym = symbol_create(name, is_param);
-    new_sym->next = scope->symbols;
-    scope->symbols = new_sym;
+    if (prev) {
+        prev->next = new_sym;
+    } else {
+        scope->symbols = new_sym;
+    }
     DEBUG("Added symbol '%s' (param=%d) to scope", name, is_param);
+    return new_sym;
+}
+
+static void scope_add_symbol(Scope* scope, char* name, int is_param, int line) {
+    scope_find_or_add(scope, name, is_param, line, 1);
 }
 
 static int scope_find_symbol(Scope* scope, char* name, int* is_param, int* is_initialized, int* is_used) {
     while (scope) {
-        for (Symbol* sym = scope->symbols; sym; sym = sym->next) {
-            if (strcmp(sym->name, name) == 0) {
-                *is_param = sym->is_param;
-                *is_initialized = sym->is_initialized;
-                *is_used = sym->is_used;
-                DEBUG("Found symbol '%s' (param=%d, initialized=%d, used=%d)", name, *is_param, *is_initialized, *is_used);
-                return 1;
-            }
+        Symbol* sym = scope_find_or_add(scope, name, 0, 0, 0);
+        if (sym) {
+            *is_param = sym->is_param;
+            *is_initialized = sym->is_initialized;
+            *is_used = sym->is_used;
+            DEBUG("Found symbol '%s' (param=%d, initialized=%d, used=%d)", name, *is_param, *is_initialized, *is_used);
+            return 1;
         }
         scope = scope->parent;
     }
@@ -390,7 +407,6 @@ static void codegen_unary_op(CodegenContext* ctx, AstNode* node, char** result, 
     char* expr_val;
     codegen_expr(ctx, node->data.unary_op.expr, &expr_val, expected_type);
     *result = new_temp(ctx);
-
     switch (node->data.unary_op.op) {
         case TOK_NOT:
             fprintf(ctx->out, "\t%s =%s ceqw %s, 0\n", *result, expected_type, expr_val);
@@ -398,14 +414,17 @@ static void codegen_unary_op(CodegenContext* ctx, AstNode* node, char** result, 
         case TOK_COMPLEMENT:
             fprintf(ctx->out, "\t%s =%s not %s\n", *result, expected_type, expr_val);
             break;
-        case TOK_INC: {
+        case TOK_INC:
+        case TOK_DEC: {
             if (!is_valid_lvalue(node->data.unary_op.expr)) {
-                error(node->line, "Increment operator applied to non-l-value");
+                error(node->line, "%s operator applied to non-l-value",
+                      node->data.unary_op.op == TOK_INC ? "Increment" : "Decrement");
             }
             char* lvalue;
             char* new_val = new_temp(ctx);
             codegen_lvalue(ctx, node->data.unary_op.expr, &lvalue);
-            fprintf(ctx->out, "\t%s =%s add %s, 1\n", new_val, expected_type, expr_val);
+            const char* op = node->data.unary_op.op == TOK_INC ? "add" : "sub";
+            fprintf(ctx->out, "\t%s =%s %s %s, 1\n", new_val, expected_type, op, expr_val);
             fprintf(ctx->out, "\tstore%s %s, %s\n", expected_type, new_val, lvalue);
             fprintf(ctx->out, "\t%s =%s copy %s\n", *result, expected_type, expr_val);
             free(lvalue);

@@ -7,6 +7,11 @@ typedef enum {
     TOK_IDENT,
     TOK_NUMBER,
     TOK_STRING,
+    TOK_QUOTE, // '
+    TOK_CHAR, // 'c', where c an arbitrary is a character
+
+    // TODO: Implement a simple macro-system using comments
+    TOK_COMMENT,
 
     // Keywords
     TOK_AUTO,
@@ -36,6 +41,7 @@ typedef enum {
     TOK_NOT,        // !
     TOK_COMPLEMENT, // ~
     TOK_INC,        // ++
+    TOK_DEC,        // --
     TOK_AND,        // &
     TOK_OR,         // |
     TOK_XOR,        // ^
@@ -52,6 +58,7 @@ typedef struct {
     TokenType type;
     char* value;
     int line;
+    int pos;
     int column;
 } Token;
 
