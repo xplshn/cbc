@@ -36,3 +36,7 @@ The project is currently in its infancy, and the long-term goals are very ambiti
 
 ###### Cool stuff used by this project:
 - [QBE](https://c9x.me/compile/): The QBE compiler backend
+
+---
+
+###### TODO: ...I should write a Limbo compiler when I finish this project...
