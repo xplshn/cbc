@@ -71,9 +71,18 @@ int main(int argc, char* argv[]) {
     if (system("qbe -o output.s output.qbe") != 0) {
         error(0, "QBE failed to assemble the intermediate representation.");
     }
-    if (system("cc -o output output.s") != 0) {
+    if (system("O output.s -o ./output.os") != 0) {
+        error(0, "Peephole optimizer failed to optimize the generated assembly.");
+    }
+    if (system("mv output.os output.s") != 0) {
+        error(0, "Could not rename ./output.os to ./output.s");
+    }
+    if (system("cc -s -static-pie -o output output.s") != 0) {
         error(0, "C compiler failed to link the final executable.");
     }
+    //if (system("sstrip output") != 0) {
+    //    error(0, "Couldn't strip the output binary using sstrip.");
+    //}
     printf("debug: --- BUILD COMPLETE: ./output ---\n");
 
     return 0;

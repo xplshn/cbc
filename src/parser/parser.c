@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-// fwd declarations
+// Forward declarations
 static void advance(Parser* parser);
 static AstNode* parse_expr(Parser* parser);
 static AstNode* parse_stmt(Parser* parser);
@@ -45,7 +45,6 @@ static void expect(Parser* parser, TokenType type, const char* message) {
     }
     error(parser->current.line, "%s. Expected token type %d, got %d", message, type, parser->current.type);
 }
-
 
 static AstNode* parse_primary(Parser* parser) {
     DEBUG("Parsing primary");
@@ -213,10 +212,20 @@ static AstNode* parse_stmt(Parser* parser) {
     }
     if (match(parser, TOK_EXTRN)) {
         int line = parser->previous.line;
-        expect(parser, TOK_IDENT, "Expected identifier after 'extrn'");
-        char* name = str_dup(parser->previous.value);
+        AstNode** stmts = malloc(sizeof(AstNode*) * 10);
+        int stmt_count = 0;
+        do {
+            expect(parser, TOK_IDENT, "Expected identifier after 'extrn' or ','");
+            char* name = str_dup(parser->previous.value);
+            stmts[stmt_count++] = ast_extrn_decl(name, line);
+        } while (match(parser, TOK_COMMA));
         expect(parser, TOK_SEMI, "Expected ';' after extrn declaration");
-        return ast_extrn_decl(name, line);
+        if (stmt_count == 1) {
+            AstNode* single_stmt = stmts[0];
+            free(stmts);
+            return single_stmt;
+        }
+        return ast_block(stmts, stmt_count, line);
     }
     if (match(parser, TOK_AUTO)) {
         int line = parser->previous.line;
@@ -282,10 +291,4 @@ void parser_free(Parser* parser) {
     token_free(parser->current);
     token_free(parser->previous);
 }
-
-
-
-
-
-
 

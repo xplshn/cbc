@@ -1,5 +1,11 @@
 CC = cc
-CFLAGS = -std=c11 -Wall -Iinclude -DDBG
+CFLAGS = -std=c11 -Wall -Iinclude
+
+DBG ?= 0
+ifeq ($(DBG),1)
+CFLAGS += -DDBG
+endif
+
 SRC = src/main.c src/lexer/lexer.c src/parser/parser.c src/ast/ast.c src/util/util.c src/codegen/codegen.c
 OBJ = $(SRC:.c=.o)
 OUT = cbc

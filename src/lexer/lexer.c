@@ -247,10 +247,10 @@ Token lexer_next(Lexer* lexer) {
     char c = peek(lexer);
     if (c == '\0') {
         Token tok = make_token(lexer, TOK_EOF, NULL);
-        printf("Token: type=%d, value=%s, line=%d, col=%d\n",
+        DEBUG("Token: type=%d, value=%s, line=%d, col=%d\n",
        tok.type, tok.value ? tok.value : "null", tok.line, tok.column);
         if (tok.type == TOK_CHAR) {
-            printf("debug: Character value (ASCII %d)\n", tok.value ? atoi(tok.value) : 0);
+            DEBUG("Character value (ASCII %d)\n", tok.value ? atoi(tok.value) : 0);
         }
         return tok;
     }
@@ -294,7 +294,7 @@ Token lexer_next(Lexer* lexer) {
         }
     }
 
-    printf("Token: type=%d, value=%s, line=%d, col=%d\n",
+    DEBUG("Token: type=%d, value=%s, line=%d, col=%d\n",
            tok.type, tok.value ? tok.value : "null", tok.line, tok.column);
     return tok;
 }
