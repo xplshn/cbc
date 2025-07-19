@@ -15,4 +15,7 @@ $(OUT): $(OBJ)
 clean:
 	rm -f $(OBJ) $(OUT) output.qbe output.s output.o output
 
-.PHONY: all clean
+test: all
+	cd examples && ./\.test
+
+.PHONY: all clean test
