@@ -29,3 +29,10 @@ The project is currently in its infancy, and the long-term goals are very ambiti
 - https://www.nokia.com/bell-labs/about/dennis-m-ritchie/btut.html
 - https://github.com/Spydr06/BCause
 - https://github.com/kparc/bcc
+###### Not B-related, but I did find these helpful for learning how to write the compiler:
+- [comp-bib](https://c9x.me/compile/bib/): "Resources for Amateur Compiler Writers"
+- [qcc](https://c9x.me/qcc): dead-simple C compiler
+- [cproc](https://github.com/michaelforney/cproc): QBE-backed compiler written in C99, with support for some C23 & GNU C extensions
+
+###### Cool stuff used by this project:
+- [QBE](https://c9x.me/compile/): The QBE compiler backend
