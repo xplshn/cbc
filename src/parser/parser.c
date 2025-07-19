@@ -34,6 +34,10 @@ static bool match(Parser* parser, TokenType type) {
     return true;
 }
 
+static bool is_valid_lvalue(AstNode* node) {
+    return node->type == AST_IDENT || node->type == AST_ARRAY_INDEX;
+}
+
 static void expect(Parser* parser, TokenType type, const char* message) {
     if (parser->current.type == type) {
         advance(parser);
@@ -41,6 +45,7 @@ static void expect(Parser* parser, TokenType type, const char* message) {
     }
     error(parser->current.line, "%s. Expected token type %d, got %d", message, type, parser->current.type);
 }
+
 
 static AstNode* parse_primary(Parser* parser) {
     DEBUG("Parsing primary");
@@ -66,7 +71,14 @@ static AstNode* parse_primary(Parser* parser) {
             expect(parser, TOK_RPAREN, "Expected ')' after function arguments");
             return ast_func_call(name, args, arg_count, line);
         }
-        return ast_ident(name, line);
+        AstNode* expr = ast_ident(name, line);
+        if (match(parser, TOK_INC)) {
+            if (!is_valid_lvalue(expr)) {
+                error(parser->previous.line, "Increment operator applied to non-l-value");
+            }
+            expr = ast_unary_op(TOK_INC, expr, parser->previous.line);
+        }
+        return expr;
     }
     if (match(parser, TOK_LPAREN)) {
         AstNode* expr = parse_expr(parser);
@@ -90,6 +102,9 @@ static AstNode* parse_postfix(Parser* parser) {
             expect(parser, TOK_RBRACKET, "Expected ']' after array index");
             expr = ast_array_index(expr, index, parser->previous.line);
         } else if (match(parser, TOK_INC)) {
+            if (!is_valid_lvalue(expr)) {
+                error(parser->previous.line, "Increment operator applied to non-l-value");
+            }
             expr = ast_unary_op(TOK_INC, expr, parser->previous.line);
         } else {
             break;
@@ -101,11 +116,21 @@ static AstNode* parse_postfix(Parser* parser) {
 static int get_precedence(TokenType op) {
     switch (op) {
         case TOK_EQ: return 1;
-        case TOK_LT: return 2;
+        case TOK_OR: return 2;
+        case TOK_XOR: return 3;
+        case TOK_AND: return 4;
+        case TOK_EQEQ:
+        case TOK_NEQ: return 5;
+        case TOK_LT:
+        case TOK_GT:
+        case TOK_LTE:
+        case TOK_GTE: return 6;
+        case TOK_SHL:
+        case TOK_SHR: return 7;
         case TOK_PLUS:
-        case TOK_MINUS: return 3;
+        case TOK_MINUS: return 8;
         case TOK_STAR:
-        case TOK_SLASH: return 4;
+        case TOK_SLASH: return 9;
         default: return 0;
     }
 }

@@ -120,18 +120,49 @@ Token lexer_next(Lexer* lexer) {
         case ']': return make_token(lexer, TOK_RBRACKET, NULL);
         case ';': return make_token(lexer, TOK_SEMI, NULL);
         case ',': return make_token(lexer, TOK_COMMA, NULL);
-        case '=': return make_token(lexer, TOK_EQ, NULL);
-        case '<': return make_token(lexer, TOK_LT, NULL);
         case '*': return make_token(lexer, TOK_STAR, NULL);
         case '/': return make_token(lexer, TOK_SLASH, NULL);
-        case '!': return make_token(lexer, TOK_NOT, NULL);
+        case '~': return make_token(lexer, TOK_COMPLEMENT, NULL);
+        case '&': return make_token(lexer, TOK_AND, NULL);
+        case '|': return make_token(lexer, TOK_OR, NULL);
+        case '^': return make_token(lexer, TOK_XOR, NULL);
+        case '<':
+            if (peek(lexer) == '<') {
+                advance(lexer);
+                return make_token(lexer, TOK_SHL, NULL);
+            } else if (peek(lexer) == '=') {
+                advance(lexer);
+                return make_token(lexer, TOK_LTE, NULL);
+            }
+            return make_token(lexer, TOK_LT, NULL);
+        case '>':
+            if (peek(lexer) == '>') {
+                advance(lexer);
+                return make_token(lexer, TOK_SHR, NULL);
+            } else if (peek(lexer) == '=') {
+                advance(lexer);
+                return make_token(lexer, TOK_GTE, NULL);
+            }
+            return make_token(lexer, TOK_GT, NULL);
+        case '=':
+            if (peek(lexer) == '=') {
+                advance(lexer);
+                return make_token(lexer, TOK_EQEQ, NULL);
+            }
+            return make_token(lexer, TOK_EQ, NULL);
+        case '!':
+            if (peek(lexer) == '=') {
+                advance(lexer);
+                return make_token(lexer, TOK_NEQ, NULL);
+            }
+            return make_token(lexer, TOK_NOT, NULL);
         case '+':
             if (peek(lexer) == '+') {
                 advance(lexer);
                 return make_token(lexer, TOK_INC, NULL);
             }
             return make_token(lexer, TOK_PLUS, NULL);
-        case '-': return make_token(lexer, TOK_MINUS, NULL);
+        case '-': return make_token(lexer, TOK_MINUS, NULL); // TODO: support --
         case '"': return string(lexer);
     }
 

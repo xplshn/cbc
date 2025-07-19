@@ -27,15 +27,25 @@ typedef enum {
     TOK_COMMA,
 
     // Operators
-    TOK_EQ,       // =
-    TOK_LT,       // <
-    TOK_PLUS,     // +
-    TOK_MINUS,    // -
-    TOK_STAR,     // *
-    TOK_SLASH,    // /
-    TOK_NOT,      // !
-    TOK_INC,      // ++
-
+    TOK_EQ,         // =
+    TOK_LT,         // <
+    TOK_PLUS,       // +
+    TOK_MINUS,      // -
+    TOK_STAR,       // *
+    TOK_SLASH,      // /
+    TOK_NOT,        // !
+    TOK_COMPLEMENT, // ~
+    TOK_INC,        // ++
+    TOK_AND,        // &
+    TOK_OR,         // |
+    TOK_XOR,        // ^
+    TOK_SHL,        // <<
+    TOK_SHR,        // >>
+    TOK_EQEQ,       // ==
+    TOK_NEQ,        // !=
+    TOK_GT,         // >
+    TOK_GTE,        // >=
+    TOK_LTE,        // <=
 } TokenType;
 
 typedef struct {

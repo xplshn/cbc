@@ -1,4 +1,3 @@
-// TODO: Write the tests, or rather, steal the tests from https://github.com/tsoding/b
 #include "codegen.h"
 #include "ast.h"
 #include "lexer.h"
@@ -366,7 +365,17 @@ static void codegen_binary_op(CodegenContext* ctx, AstNode* node, char** result,
         case TOK_MINUS: op_str = "sub"; break;
         case TOK_STAR: op_str = "mul"; break;
         case TOK_SLASH: op_str = "div"; break;
-        case TOK_LT: op_str = "csltw"; break; // Word comparison
+        case TOK_AND: op_str = "and"; break;
+        case TOK_OR: op_str = "or"; break;
+        case TOK_XOR: op_str = "xor"; break;
+        case TOK_SHL: op_str = "shl"; break;
+        case TOK_SHR: op_str = "shr"; break;
+        case TOK_EQEQ: op_str = "ceqw"; break;
+        case TOK_NEQ: op_str = "cnew"; break;
+        case TOK_LT: op_str = "csltw"; break;
+        case TOK_GT: op_str = "csgtw"; break;
+        case TOK_LTE: op_str = "cslew"; break;
+        case TOK_GTE: op_str = "csgew"; break;
         default:
             error(node->line, "Unsupported binary operator");
             op_str = "unknown";
@@ -385,6 +394,9 @@ static void codegen_unary_op(CodegenContext* ctx, AstNode* node, char** result, 
     switch (node->data.unary_op.op) {
         case TOK_NOT:
             fprintf(ctx->out, "\t%s =%s ceqw %s, 0\n", *result, expected_type, expr_val);
+            break;
+        case TOK_COMPLEMENT:
+            fprintf(ctx->out, "\t%s =%s not %s\n", *result, expected_type, expr_val);
             break;
         case TOK_INC: {
             if (!is_valid_lvalue(node->data.unary_op.expr)) {
