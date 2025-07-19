@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# quick n dirty testing. We'll do this properly, as noted in the ROADMAP. But not right now. I just need a way temporarily to track regressions
+
+CBC=../cbc
+PASSDIR=".passingTests"
+PARTFAILDIR=".failedPartially"
+FAILDIR=".completeFailure"
+
+mkdir -p "$PASSDIR" "$PARTFAILDIR" "$FAILDIR"
+
+for bfile in ./*.b; do
+    [ -f "$bfile" ] || continue
+
+    name="$(basename "$bfile" .b)"
+    logfile="$name.log"
+
+    rm -f ./output.qbe ./output.s ./output
+
+    if ! output="$("$CBC" "$bfile" 2>&1)"; then
+        if [ -f ./output.qbe ]; then
+            printf "\033[33m[PARTFAIL] %s\033[0m\n" "$bfile"
+            mv output.qbe "$PARTFAILDIR/${name}_output.qbe"
+            printf "%s\n" "$output" > "$PARTFAILDIR/$logfile"
+        else
+            printf "\033[31m[FAILED] %s\033[0m\n" "$bfile"
+            printf "%s\n" "$output" > "$FAILDIR/$logfile"
+        fi
+        continue
+    fi
+
+    # Success case
+    if [ -f ./output ] && [ -f ./output.qbe ]; then
+        printf "\033[32m[PASS] %s\033[0m\n" "$bfile"
+        mv output "$PASSDIR/${name}_output"
+        mv output.qbe "$PASSDIR/${name}_output.qbe"
+        printf "%s\n" "$output" > "$PASSDIR/$logfile"
+    else
+        printf "\033[33m[PARTFAIL: Missing output files] %s\033[0m\n" "$bfile"
+        [ -f output.qbe ] && mv output.qbe "$PARTFAILDIR/${name}_output.qbe"
+        printf "%s\n" "$output" > "$PARTFAILDIR/$logfile"
+    fi
+done
