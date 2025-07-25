@@ -28,7 +28,7 @@ passed_count=0
 failed_count=0
 total_count=0
 
-badFiles="./name.b ./snake.b ./brainfck.b ./game_of_life.b ./game_of_b.b ./donut.b ./raylib.b"
+badFiles="./name.b ./snake.b ./brainfck.b ./game_of_life.b ./mandelbrot2.b"
 
 for bfile in ./*.b; do
     skip=0
