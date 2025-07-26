@@ -7,13 +7,13 @@ The project is currently in its infancy, and the long-term goals are very ambiti
 > ##### ROADMAP
 >
 > ###### (i) Tests
-> * Make a script that takes the tests from [tsoding/b](https://github.com/tsoding/b), and filters the tests.json to only include the IR tests
+> * ~~Make a script that takes the tests from [tsoding/b](https://github.com/tsoding/b), and filters the tests.json to only include the IR tests~~
 > * Make a Go program that runs each test, displays the passing/failing ones
 >
 > ###### (ii) Compatibility with [tsoding/b](https://github.com/tsoding/b)
-> 1. Support the "extrn" keyword, as well as inline assembly
-> 2. Use the same warning & error messages [tsoding/b](https://github.com/tsoding/b)
-> 3. Be able to pass the IR tests of [tsoding/b](https://github.com/tsoding/b)
+> 1. ~~Support the "extrn" keyword, as well as inline assembly~~
+> 2. ~~Use the same warning & error messages [tsoding/b](https://github.com/tsoding/b)~~ / our warnings n errors are much better
+> 3. ~~Be able to pass the IR tests of [tsoding/b](https://github.com/tsoding/b)~~
 >
 > ###### (iii) Packages / Modules inspired by Go
 > * ¿.. Namespaces based on .mod file ..?
