@@ -177,7 +177,13 @@ static void parse_arguments(int argc, char *argv[], CliOptions *opts) {
       // This is already handled in the first pass, but we keep it here
       // to avoid it being treated as an unknown option.
     } else if (strcmp(arg, "-Wall") == 0) {
+      bool oWARN_C_COMMENTS = is_warning_enabled(WARN_C_COMMENTS);
+      bool oWARN_C_OPS = is_warning_enabled(WARN_C_OPS);
+      bool oWARN_B_OPS = is_warning_enabled(WARN_B_OPS);
       set_warning_all(true);
+      set_warning(WARN_C_COMMENTS, oWARN_C_COMMENTS);
+      set_warning(WARN_C_OPS, oWARN_C_OPS);
+      set_warning(WARN_B_OPS, oWARN_B_OPS);
     } else if (strcmp(arg, "-Wno-all") == 0) {
       set_warning_all(false);
     } else if (strcmp(arg, "-pedantic") == 0) {
@@ -251,13 +257,14 @@ static void apply_std(const char *std_name) {
     if (is_pedantic) {
       set_feature(FEAT_EXTRN, false);
       set_feature(FEAT_ASM, false);
-      set_warning(WARN_C_COMMENTS, true);
+      set_warning(WARN_C_OPS, is_pedantic);
+      set_warning(WARN_B_OPS, is_pedantic);
     }
   } else if (strcmp(std_name, "Bx") == 0) {
     set_feature(FEAT_B_COMPOUND_ASSIGN, false);
     set_feature(FEAT_B_ESCAPES, !is_pedantic);
-    set_warning(WARN_C_OPS, false);
     set_warning(WARN_B_OPS, !is_pedantic);
+    set_warning(WARN_C_OPS, false);
   } else {
     error(0, 0, 0, "Unsupported standard '%s'. Supported: 'B', 'Bx'.",
           std_name);
