@@ -4,6 +4,56 @@ This compiler is a project aiming to make a valid B compiler, with _optional_ ex
 
 The project is currently in its infancy, and the long-term goals are very ambitious. This is the current roadmap:
 
+```
+]~/Documents/TrulyMine/cbc@ ./cbc 
+
+Copyright (c) 2025: xplshn and contributors
+For more details refer to <https://github.com/xplshn/cbc>
+
+  Synopsis
+    ./cbc [options] <input.b> ...
+
+  Description
+    A compiler for the B programming language and its extensions.
+
+  Options
+    -o <file>              Place the output into <file>.
+    -h, --help             Display this information.
+    -std=<std>             Specify language standard (B, Bx). Default: Bx
+    -pedantic              Issue all warnings demanded by the current B std.
+
+  Warning Flags
+    -Wall                  Enable most warnings.
+    -Wno-all               Disable all warnings.
+    -W<warning>            Enable a specific warning.
+    -Wno-<warning>         Disable a specific warning.
+    Available warnings:
+      c-escapes              Using C-style '\' escapes instead of B's '*'                                [x]
+      b-escapes              Using historical B-style '*' escapes instead of C's '\'                     [x]
+      b-ops                  Using historical B assignment operators like '=+'                           [x]
+      c-ops                  Using C-style assignment operators like '+=' in -std=B mode                 [x]
+      unrecognized-escape    Using unrecognized escape sequences                                         [x]
+      truncated-char         Character escape value is too large for a byte and has been truncated       [x]
+      long-char-const        Multi-character constant is too long for a word                             [x]
+      c-comments             Using non-standard C-style '//' comments                                    [-]
+      overflow               Integer constant is out of range for its type                               [x]
+      pedantic               Issues that violate the current strict -std=                                [-]
+      unreachable-code       Unreachable code                                                            [x]
+      extra                  Extra warnings (e.g., poor choices, unrecognized flags)                     [x]
+
+  Feature Flags
+    -F<feature>            Enable a specific feature.
+    -Fno-<feature>         Disable a specific feature.
+    Available features:
+      extrn                  Allow the 'extrn' keyword                                                   [x]
+      asm                    Allow the '__asm__' keyword and blocks                                      [x]
+      b-escapes              Recognize B-style '*' character escapes                                     [x]
+      c-escapes              Recognize C-style '\' character escapes                                     [x]
+      b-compound-assign      Recognize B-style assignment operators like '=+'                            [x]
+
+]~/Documents/TrulyMine/cbc@ 
+```
+
 > ##### ROADMAP
 >
 > ###### (i) Tests
