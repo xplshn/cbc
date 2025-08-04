@@ -7,8 +7,6 @@
 
 This compiler is a project aiming to make a valid B compiler, with _optional_ extensions for C interoperability, and a modules system like Go's
 
-The project is currently in its infancy, and the long-term goals are very ambitious. This is the current roadmap:
-
 ```
 ]~/Documents/TrulyMine/cbc@ ./cbc 
 
@@ -58,6 +56,8 @@ For more details refer to <https://github.com/xplshn/cbc>
 
 ]~/Documents/TrulyMine/cbc@ 
 ```
+
+The project is currently in its infancy, and the long-term goals are very ambitious. This is the current roadmap:
 
 > ##### ROADMAP
 >
