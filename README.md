@@ -1,3 +1,8 @@
+> __GBC__ - Go B Compiler - https://github.com/xplshn/gbc
+>
+> A much more capable B compiler, written using modernc.org/libqbe
+---
+
 # (cbc) | The C B Compiler
 
 This compiler is a project aiming to make a valid B compiler, with _optional_ extensions for C interoperability, and a modules system like Go's
